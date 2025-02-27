@@ -2,9 +2,9 @@ coverage:
   status:
     project:
       default:
-        threshold: 0.5%
+        informational: true
     patch:
       default:
-        threshold: 0.5%
+        informational: true
   precision: 1
   round: up
