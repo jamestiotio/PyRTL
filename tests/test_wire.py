@@ -263,12 +263,37 @@ class TestRegister(unittest.TestCase):
         self.assertEqual(r.reset_value, 1)
 
     def test_invalid_reset_value_too_large(self):
-        with self.assertRaisesRegex(pyrtl.PyrtlError, "cannot fit in the specified"):
+        with self.assertRaises(pyrtl.PyrtlError):
             r = pyrtl.Register(4, reset_value=16)
 
     def test_invalid_reset_value_too_large_as_string(self):
-        with self.assertRaisesRegex(pyrtl.PyrtlError, "cannot fit in the specified"):
+        with self.assertRaises(pyrtl.PyrtlError):
             r = pyrtl.Register(4, reset_value="5'd16")
+
+    def test_negative_reset_value(self):
+        r = pyrtl.Register(4, reset_value=-4)
+        self.assertEqual(
+            pyrtl.helperfuncs.val_to_signed_integer(r.reset_value, r.bitwidth),
+            -4
+        )
+
+    def test_negative_reset_value_as_string(self):
+        r = pyrtl.Register(4, reset_value="-4'd1")
+        self.assertEqual(
+            pyrtl.helperfuncs.val_to_signed_integer(r.reset_value, r.bitwidth),
+            -1
+        )
+
+    def test_invalid_negative_reset_value_as_string(self):
+        with self.assertRaises(pyrtl.PyrtlError):
+            r = pyrtl.Register(2, reset_value="-4'd1")
+
+    def test_extending_negative_reset_value_as_string(self):
+        r = pyrtl.Register(4, reset_value="-3'd3")
+        self.assertEqual(
+            pyrtl.helperfuncs.val_to_signed_integer(r.reset_value, r.bitwidth),
+            -3
+        )
 
     def test_invalid_reset_value_not_an_integer(self):
         with self.assertRaises(pyrtl.PyrtlError):
@@ -345,7 +370,6 @@ class TestConst(unittest.TestCase):
         self.assert_bad_const("5'b111111'")
         self.assert_bad_const("'")
         self.assert_bad_const("'1")
-        self.assert_bad_const("2'b01", bitwidth=3)
         self.assert_bad_const("1'")
 
     def test_bool(self):
