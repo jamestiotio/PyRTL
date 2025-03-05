@@ -159,7 +159,10 @@ class WireVector(object):
 
     def __str__(self):
         """A string representation of the wire in 'name/bitwidth code' form."""
-        return ''.join([self.name, '/', str(self.bitwidth), self._code])
+        return f'{self.name}/{self.bitwidth}{self._code}'
+
+    def __repr__(self):
+        return str(self)
 
     def _validate_bitwidth(self, bitwidth):
         if bitwidth is not None:
@@ -933,6 +936,9 @@ class WrappedWireVector:
 
     def __str__(self):
         return str(self.wire)
+
+    def __repr__(self):
+        return repr(self.wire)
 
     def __ilshift__(self, other):
         self.wire <<= other

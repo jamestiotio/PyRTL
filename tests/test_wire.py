@@ -487,6 +487,7 @@ class TestWrappedWireVector(unittest.TestCase):
 
                 self.assertEqual(hash(a), hash(wrapped_a))
                 self.assertEqual(str(a), str(wrapped_a))
+                self.assertEqual(repr(a), repr(wrapped_a))
                 self.assertEqual(len(a), len(wrapped_a))
 
                 a_and_b = pyrtl.wire.WireVector(name='a_and_b', bitwidth=4)
