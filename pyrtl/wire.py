@@ -92,6 +92,92 @@ class WireVector(object):
     this case with a reference to WireVector ``b``. In contrast ``a <<= b``
     does not overwrite ``a``, but simply wires the two together.
 
+    -------------------
+    WireVector Equality
+    -------------------
+
+    WireVector's :meth:`.__eq__` generates logic that dynamically reports if two wires
+    carry the same values. WireVector's :meth:`.__eq__` returns a 1-bit WireVector, not
+    a ``bool``, and attempting to convert a WireVector to a ``bool`` throws a
+    ``PyrtlError``. This behavior is incompatible with `Python's data model
+    <https://docs.python.org/3/reference/expressions.html#value-comparisons>`_, which
+    can cause problems.
+
+    For example, you *can not* statically check if two WireVectors are equal with
+    ``==``. Statically checking for WireVector equality can be useful while constructing
+    or analyzing circuits::
+
+        >>> w1 = pyrtl.WireVector(name="w1", bitwidth=1)
+        >>> w2 = pyrtl.WireVector(name="w2", bitwidth=2)
+        >>> if w1 == w2:
+        ...     print('same')
+        ...
+        Traceback (most recent call last):
+        ...
+        pyrtl.pyrtlexceptions.PyrtlError: cannot convert WireVector to compile-time
+        boolean.  This error often happens when you attempt to use WireVectors with "=="
+        or something that calls "__eq__", such as when you test if a WireVector is "in"
+        something
+
+    The error about converting WireVector to ``bool`` results from Python attempting to
+    convert the 1-bit WireVector returned by :meth:`.__eq__` to ``True`` or ``False``
+    while evaluating the ``if`` statement's condition.
+
+    Instead, you *can* statically check if two WireVectors refer to the same object with
+    ``is``::
+
+        >>> if w1 is not w2:
+        ...     print('not the same')
+        ...
+        not the same
+        >>> temp = w1
+        >>> temp is w1
+        True
+        >>> temp is w2
+        False
+
+    Be careful when using Python features that depend on ``==`` with WireVectors. This
+    often comes up when checking if a WireVector is in a list with ``in``, which does
+    not work because ``in`` falls back on checking each item in the ``list`` for
+    equality with ``==``::
+
+        >>> l = [w1]
+        >>> w2 in l
+        Traceback (most recent call last):
+        ...
+        pyrtl.pyrtlexceptions.PyrtlError: cannot convert WireVector to compile-time
+        boolean.  This error often happens when you attempt to use WireVectors with "=="
+        or something that calls "__eq__", such as when you test if a WireVector is "in"
+        something
+
+    Most other ``list`` operations work, so you can store WireVectors in a ``list`` if
+    you avoid using the ``in`` operator::
+
+        >>> len(l)
+        1
+        >>> l[0] is w1
+        True
+        >>> [(w.name, w.bitwidth) for w in l]
+        [('w1', 1)]
+
+    WireVectors define a standard ``__hash__`` method, so if you need to check if a
+    WireVector is in a container, use a ``set`` or ``dict``. This works because these
+    containers use ``__hash__`` to skip unnecessary equality checks::
+
+        >>> s = {w1}
+        >>> w1 in s
+        True
+        >>> w2 in s
+        False
+
+        >>> d = {w1: 'hello'}
+        >>> w1 in d
+        True
+        >>> w2 in d
+        False
+        >>> d[w1]
+        'hello'
+
     """
 
     # "code" is a static variable used when output as string.
